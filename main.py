@@ -2,7 +2,7 @@ import numpy as np
 from linalg import compute_eigenvalues
 
 def main():
-    SIZE = 10
+    SIZE = 100
 
     # Needs to be equal to or smaller that the size of the matrix
     # This gives the number of approxiamted eignevalues, the smaller the faster but less accurate

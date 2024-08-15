@@ -21,29 +21,16 @@ def hessenberg(A, b, m):
     
     return H
 
-def _largest_l2norm_index(A):
-    idx, val = 0, float("-inf")
-    for i in range(A.shape[1]):
-        n = l2norm(A[:, i]) 
-        if n > val:
-            idx = i
-            val = n
-
-    return idx
-
 def qr_decomposition(A):
     Q = np.zeros(A.shape)
     A_p = np.copy(A)
 
     for i in range(A.shape[1]):
-        # You could squentially go through the vectors in the matrix but getting the vector with
-        # the largest l2norm minimises floating point error
-        idx = _largest_l2norm_index(A_p)
-        q = A_p[:, idx] / l2norm(A_p[:, idx])
+        q = A_p[:, i] / l2norm(A_p[:, i])
         Q[:, i] = q
 
         for j in range(A.shape[1]):
-            A_p[:, j] -= np.dot(q.T, A_p[:, j]) * q
+            A_p[:, j] -= np.dot(A_p[:, j].T, q) * q
 
     R = np.matmul(Q.T, A)
 
@@ -57,9 +44,14 @@ def compute_eigenvalues(A, m=None, iterations=100):
     # Just a random vector which forms the basis for the Krylov space
     b = np.random.uniform(-1, 1, (size))
     H = hessenberg(A, b, m)
+    mu = 0
 
-    for _ in range(iterations):
-        Q, R = qr_decomposition(H)
-        H = np.matmul(R, Q)
+    for iteration in range(iterations):
+        mu = H[-1, -1]
+        Q, R = qr_decomposition(H - np.eye(H.shape[0]) * mu)
+        H = R @ Q + np.eye(H.shape[0]) * mu
+        
+        if l2norm(np.tril(H)) < 1e-10:
+            break
 
     return H.diagonal()
